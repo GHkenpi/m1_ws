@@ -8,8 +8,17 @@ using TMPro;
 /// </summary>
 public class ExperimentTimer : MonoBehaviour
 {
+    public enum DurationPreset { Sec20 = 20, Sec30 = 30, Sec40 = 40, Custom = 0 }
+
+    [Header("Study 2 Conditions")]
+    public DurationPreset durationPreset = DurationPreset.Sec40;
+
     [Header("Duration (s)")]
-    public float duration = 40f;  // Study 2: 40秒条件
+    public float duration = 40f;  // Study 2: 20s, 30s, 40s
+
+    [Header("Embodiment / Avatar Control")]
+    public bool enableAvatarHands = true;
+    public GameObject avatarHandsContainer; // Controller/Hand Root GameObject
 
     [Header("References")]
     public TunnelScrollController tunnelScroll;
@@ -17,6 +26,19 @@ public class ExperimentTimer : MonoBehaviour
 
     private float _elapsed = 0f;
     private bool _running = false;
+
+    private void OnValidate()
+    {
+        if (durationPreset != DurationPreset.Custom)
+        {
+            duration = (float)durationPreset;
+        }
+
+        if (avatarHandsContainer != null)
+        {
+            avatarHandsContainer.SetActive(enableAvatarHands);
+        }
+    }
 
     void Update()
     {
@@ -39,21 +61,66 @@ public class ExperimentTimer : MonoBehaviour
     /// <summary>実験開始 (Spaceキー または外部から呼び出す)</summary>
     public void StartExperiment()
     {
+        if (tunnelScroll == null) tunnelScroll = FindObjectOfType<TunnelScrollController>();
+
+        if (durationPreset != DurationPreset.Custom)
+        {
+            duration = (float)durationPreset;
+        }
+
         _elapsed = 0f;
         _running = true;
-        if (tunnelScroll != null) tunnelScroll.StartScroll();
-        Debug.Log("[ExperimentTimer] 実験開始— Fast / High Density / 40s");
+        if (tunnelScroll != null)
+        {
+            tunnelScroll.UpdateParameters();
+            tunnelScroll.StartScroll();
+        }
+
+        if (avatarHandsContainer != null)
+        {
+            avatarHandsContainer.SetActive(enableAvatarHands);
+        }
+        else
+        {
+            var hands = FindObjectsOfType<Valve.VR.InteractionSystem.Hand>(true);
+            foreach (var hand in hands)
+            {
+                hand.gameObject.SetActive(enableAvatarHands);
+            }
+        }
+
+        Debug.Log($"[ExperimentTimer] 実験開始— Speed: {tunnelScroll?.speedPreset} ({tunnelScroll?.speedMetersPerSecond}m/s), Density: {tunnelScroll?.densityPreset} ({tunnelScroll?.sectionsPer100m} sections/100m), Duration: {duration}s, Avatar: {(enableAvatarHands ? "Hands" : "No Hands")}");
     }
 
     /// <summary>Spaceキーで開始できるようにする (HMD用)</summary>
     void Start()
     {
-        // 山始時はスクロール停止状態にする
+        if (tunnelScroll == null) tunnelScroll = FindObjectOfType<TunnelScrollController>();
+
+        if (durationPreset != DurationPreset.Custom)
+        {
+            duration = (float)durationPreset;
+        }
+
+        var vrHands = FindObjectsOfType<Valve.VR.InteractionSystem.Hand>(true);
+        if (avatarHandsContainer != null)
+        {
+            avatarHandsContainer.SetActive(enableAvatarHands);
+        }
+        else
+        {
+            // 自動検出: SteamVR Hand や RenderModel をトグル
+            foreach (var hand in vrHands)
+            {
+                hand.gameObject.SetActive(enableAvatarHands);
+            }
+        }
+
+        // 起動時はスクロールを停止状態にしておく（Spaceキーで開始）
         if (tunnelScroll != null) tunnelScroll.StopScroll();
 
         // 起動時の VR コントローラーバイブレーション（ハプティクス）機能を無効化
-        var hands = FindObjectsOfType<Valve.VR.InteractionSystem.Hand>();
-        foreach (var hand in hands)
+        foreach (var hand in vrHands)
         {
             hand.hapticAction = null;
         }

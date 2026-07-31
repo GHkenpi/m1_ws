@@ -462,7 +462,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c009623e2c3232d438b18530f75050d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  durationPreset: 40
   duration: 40
+  enableAvatarHands: 1
+  avatarHandsContainer: {fileID: 0}
   tunnelScroll: {fileID: 2062548827}
   timerText: {fileID: 0}
 --- !u!4 &687708490
@@ -1325,8 +1328,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 807964e28ed5a0847b0dcb6995bd33b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scrollSpeed: 0.6
-  tilingY: 20
+  speedPreset: 0
+  densityPreset: 0
+  speedMetersPerSecond: 10
+  sectionsPer100m: 20
+  totalTunnelLength: 200
+  scrollSpeed: 2
+  tilingY: 40
 --- !u!4 &2062548828
 Transform:
   m_ObjectHideFlags: 0
