@@ -79,26 +79,31 @@ public class VRQuestionnaireUI : MonoBehaviour
 
         // Q1: Time Estimate Text & Input
         CreateQuestionLabel("Q1: 直感的にトンネルは何秒間続いて見えましたか？ (秒)", new Vector2(0, 150), font);
-        GameObject q1InputObj = CreateInputField(new Vector2(0, 100), "推定秒数を入力...", font);
+        GameObject q1InputObj = CreateInputField(new Vector2(0, 100), "30 秒", font);
+        q1BgImage = q1InputObj.GetComponent<Image>();
         timeEstimateInput = q1InputObj.GetComponent<InputField>();
+        q1ValueText = q1InputObj.GetComponentInChildren<UnityEngine.UI.Text>();
+        if (q1ValueText != null) q1ValueText.text = "30 秒";
 
         // Q2: Passage of Time Slider
         CreateQuestionLabel("Q2: 時間の経過速度はどれくらい速く感じましたか？ (0:非常に遅い 〜 100:非常に速い)", new Vector2(0, 30), font);
         var passageGroup = CreateSlider(new Vector2(0, -20), font);
         passageOfTimeSlider = passageGroup.slider;
         passageValueText = passageGroup.valText;
+        q2BgImage = passageGroup.bgImg;
 
         // Q3: Vection Slider
         CreateQuestionLabel("Q3: 自分自身が移動しているように感じましたか？ (0:全く感じない 〜 100:非常に強く感じた)", new Vector2(0, -90), font);
         var vectionGroup = CreateSlider(new Vector2(0, -140), font);
         vectionSlider = vectionGroup.slider;
         vectionValueText = vectionGroup.valText;
+        q3BgImage = vectionGroup.bgImg;
 
         // Submit Button
         GameObject btnObj = new GameObject("SubmitButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
         btnObj.transform.SetParent(transform, false);
-        Image btnImg = btnObj.GetComponent<Image>();
-        btnImg.color = new Color(0.2f, 0.6f, 1.0f, 1.0f);
+        submitBtnImage = btnObj.GetComponent<Image>();
+        submitBtnImage.color = new Color(0.2f, 0.6f, 1.0f, 1.0f);
         submitButton = btnObj.GetComponent<Button>();
         submitButton.onClick.AddListener(OnSubmitClicked);
         RectTransform btnRect = btnObj.GetComponent<RectTransform>();
@@ -117,6 +122,8 @@ public class VRQuestionnaireUI : MonoBehaviour
         btnTxtRect.anchorMin = Vector2.zero;
         btnTxtRect.anchorMax = Vector2.one;
         btnTxtRect.sizeDelta = Vector2.zero;
+
+        UpdateFocusHighlight();
     }
 
     private void CreateQuestionLabel(string text, Vector2 pos, Font font)
@@ -160,7 +167,7 @@ public class VRQuestionnaireUI : MonoBehaviour
         return inputObj;
     }
 
-    private (Slider slider, UnityEngine.UI.Text valText) CreateSlider(Vector2 pos, Font font)
+    private (Slider slider, UnityEngine.UI.Text valText, Image bgImg) CreateSlider(Vector2 pos, Font font)
     {
         GameObject sliderObj = new GameObject("Slider", typeof(RectTransform), typeof(Slider));
         sliderObj.transform.SetParent(transform, false);
@@ -175,7 +182,8 @@ public class VRQuestionnaireUI : MonoBehaviour
         // Background
         GameObject bg = new GameObject("Background", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         bg.transform.SetParent(sliderObj.transform, false);
-        bg.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.25f);
+        Image bgImg = bg.GetComponent<Image>();
+        bgImg.color = new Color(0.2f, 0.2f, 0.25f);
         RectTransform bgr = bg.GetComponent<RectTransform>();
         bgr.anchorMin = Vector2.zero; bgr.anchorMax = Vector2.one; bgr.sizeDelta = Vector2.zero;
 
@@ -221,7 +229,7 @@ public class VRQuestionnaireUI : MonoBehaviour
 
         slider.onValueChanged.AddListener(v => valTxt.text = $"{v:F0}");
 
-        return (slider, valTxt);
+        return (slider, valTxt, bgImg);
     }
 
     public void Show(int trialIndex, int totalTrials, Action<float, float, float> onSubmitted)
@@ -236,31 +244,150 @@ public class VRQuestionnaireUI : MonoBehaviour
         }
 
         // 初期リセット
-        if (timeEstimateInput != null) timeEstimateInput.text = "";
+        _focusedItemIndex = 0;
+        _dv1Value = 30f;
+        _dv2Value = 50f;
+        _dv3Value = 50f;
+
+        if (q1ValueText != null) q1ValueText.text = "30 秒";
+        if (timeEstimateInput != null) timeEstimateInput.text = "30";
         if (passageOfTimeSlider != null) passageOfTimeSlider.value = 50f;
         if (vectionSlider != null) vectionSlider.value = 50f;
         if (passageValueText != null) passageValueText.text = "50";
         if (vectionValueText != null) vectionValueText.text = "50";
 
+        UpdateFocusHighlight();
+
         // HMD正面へUIを自動追従・配置
         PositionInFrontOfCamera();
     }
 
-    public void Hide()
+    private int _focusedItemIndex = 0; // 0: Q1(時間推定), 1: Q2(経過速度), 2: Q3(ベクション), 3: 送信ボタン
+    private float _dv1Value = 30f;
+    private float _dv2Value = 50f;
+    private float _dv3Value = 50f;
+
+    public UnityEngine.UI.Text q1ValueText;
+    public Image q1BgImage;
+    public Image q2BgImage;
+    public Image q3BgImage;
+    public Image submitBtnImage;
+
+    private void Update()
     {
-        gameObject.SetActive(false);
+        if (!gameObject.activeSelf) return;
+
+        // 右コントローラートラックパッド / 矢印キー入力の取得
+        Vector2 trackpadPos = Vector2.zero;
+        bool isUpPressed = Input.GetKeyDown(KeyCode.UpArrow);
+        bool isDownPressed = Input.GetKeyDown(KeyCode.DownArrow);
+        bool isLeftPressed = Input.GetKeyDown(KeyCode.LeftArrow);
+        bool isRightPressed = Input.GetKeyDown(KeyCode.RightArrow);
+        bool isTriggerPressed = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
+
+        // SteamVR Input 経由のトラックパッド/トリガー入力判定
+        var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
+        if (rightHand != null)
+        {
+            if (rightHand.trackpadAction != null)
+            {
+                trackpadPos = rightHand.trackpadAction.GetAxis(rightHand.handType);
+            }
+
+            if (rightHand.controller != null)
+            {
+                if (rightHand.controller.GetPressDown(Valve.VR.EVRButtonId.k_EButton_SteamVR_Touchpad))
+                {
+                    if (trackpadPos.y > 0.3f) isUpPressed = true;
+                    else if (trackpadPos.y < -0.3f) isDownPressed = true;
+
+                    if (trackpadPos.x < -0.3f) isLeftPressed = true;
+                    else if (trackpadPos.x > 0.3f) isRightPressed = true;
+                }
+
+                if (rightHand.controller.GetHairTriggerDown())
+                {
+                    isTriggerPressed = true;
+                }
+            }
+        }
+
+        // 項目間移動 (トラックパッド上下)
+        if (isUpPressed)
+        {
+            _focusedItemIndex = (_focusedItemIndex - 1 + 4) % 4;
+            UpdateFocusHighlight();
+        }
+        else if (isDownPressed)
+        {
+            _focusedItemIndex = (_focusedItemIndex + 1) % 4;
+            UpdateFocusHighlight();
+        }
+
+        // 数値変更 (トラックパッド左右 / スクロール)
+        float changeStep = 1.0f;
+        if (isLeftPressed) ChangeCurrentValue(-changeStep);
+        if (isRightPressed) ChangeCurrentValue(changeStep);
+
+        // トラックパッドのアナログ操作（Y軸スクロール）
+        if (Mathf.Abs(trackpadPos.y) > 0.5f && Time.frameCount % 5 == 0)
+        {
+            ChangeCurrentValue(Mathf.Sign(trackpadPos.y) * 1.0f);
+        }
+
+        // トリガーで決定・送信
+        if (isTriggerPressed)
+        {
+            if (_focusedItemIndex == 3)
+            {
+                OnSubmitClicked();
+            }
+            else
+            {
+                // 次の項目へ移動
+                _focusedItemIndex = (_focusedItemIndex + 1) % 4;
+                UpdateFocusHighlight();
+            }
+        }
+    }
+
+    private void ChangeCurrentValue(float delta)
+    {
+        switch (_focusedItemIndex)
+        {
+            case 0:
+                _dv1Value = Mathf.Clamp(_dv1Value + delta, 0f, 120f);
+                if (q1ValueText != null) q1ValueText.text = $"{_dv1Value:F0} 秒";
+                break;
+            case 1:
+                _dv2Value = Mathf.Clamp(_dv2Value + delta, 0f, 100f);
+                if (passageOfTimeSlider != null) passageOfTimeSlider.value = _dv2Value;
+                if (passageValueText != null) passageValueText.text = $"{_dv2Value:F0}";
+                break;
+            case 2:
+                _dv3Value = Mathf.Clamp(_dv3Value + delta, 0f, 100f);
+                if (vectionSlider != null) vectionSlider.value = _dv3Value;
+                if (vectionValueText != null) vectionValueText.text = $"{_dv3Value:F0}";
+                break;
+        }
+    }
+
+    private void UpdateFocusHighlight()
+    {
+        Color normalColor = new Color(0.2f, 0.2f, 0.25f);
+        Color focusColor = new Color(0.2f, 0.6f, 0.9f, 0.9f);
+
+        if (q1BgImage != null) q1BgImage.color = _focusedItemIndex == 0 ? focusColor : normalColor;
+        if (q2BgImage != null) q2BgImage.color = _focusedItemIndex == 1 ? focusColor : normalColor;
+        if (q3BgImage != null) q3BgImage.color = _focusedItemIndex == 2 ? focusColor : normalColor;
+        if (submitBtnImage != null) submitBtnImage.color = _focusedItemIndex == 3 ? new Color(0.1f, 0.8f, 0.3f) : new Color(0.2f, 0.6f, 1.0f);
     }
 
     private void OnSubmitClicked()
     {
-        float dv1 = 0f;
-        if (timeEstimateInput != null && !string.IsNullOrEmpty(timeEstimateInput.text))
-        {
-            float.TryParse(timeEstimateInput.text, out dv1);
-        }
-
-        float dv2 = passageOfTimeSlider != null ? passageOfTimeSlider.value : 50f;
-        float dv3 = vectionSlider != null ? vectionSlider.value : 50f;
+        float dv1 = _dv1Value;
+        float dv2 = passageOfTimeSlider != null ? passageOfTimeSlider.value : _dv2Value;
+        float dv3 = vectionSlider != null ? vectionSlider.value : _dv3Value;
 
         Hide();
         _onSubmittedCallback?.Invoke(dv1, dv2, dv3);
