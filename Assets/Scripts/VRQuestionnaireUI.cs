@@ -20,31 +20,204 @@ public class VRQuestionnaireUI : MonoBehaviour
 
     private Action<float, float, float> _onSubmittedCallback;
 
+    private bool _uiBuilt = false;
+
     private void Awake()
     {
-        if (passageOfTimeSlider != null)
+        EnsureUIBuilt();
+    }
+
+    public void EnsureUIBuilt()
+    {
+        if (_uiBuilt) return;
+        _uiBuilt = true;
+
+        Canvas canvas = GetComponent<Canvas>();
+        if (canvas == null) canvas = gameObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+
+        CanvasScaler scaler = GetComponent<CanvasScaler>();
+        if (scaler == null) scaler = gameObject.AddComponent<CanvasScaler>();
+        scaler.dynamicPixelsPerUnit = 10;
+
+        GraphicRaycaster raycaster = GetComponent<GraphicRaycaster>();
+        if (raycaster == null) gameObject.AddComponent<GraphicRaycaster>();
+
+        RectTransform rect = GetComponent<RectTransform>();
+        if (rect != null)
         {
-            passageOfTimeSlider.onValueChanged.AddListener(val => {
-                if (passageValueText != null) passageValueText.text = $"{val:F0}";
-            });
+            rect.sizeDelta = new Vector2(800, 600);
+            rect.localScale = new Vector2(0.002f, 0.002f);
         }
 
-        if (vectionSlider != null)
-        {
-            vectionSlider.onValueChanged.AddListener(val => {
-                if (vectionValueText != null) vectionValueText.text = $"{val:F0}";
-            });
-        }
+        // 背景パネル作成
+        GameObject bgObj = new GameObject("BackgroundPanel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        bgObj.transform.SetParent(transform, false);
+        Image bgImg = bgObj.GetComponent<Image>();
+        bgImg.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
+        RectTransform bgRect = bgObj.GetComponent<RectTransform>();
+        bgRect.anchorMin = Vector2.zero;
+        bgRect.anchorMax = Vector2.one;
+        bgRect.sizeDelta = Vector2.zero;
 
-        if (submitButton != null)
-        {
-            submitButton.onClick.AddListener(OnSubmitClicked);
-        }
+        // タイトル
+        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        titleObj.transform.SetParent(transform, false);
+        titleText = titleObj.GetComponent<TextMeshProUGUI>();
+        titleText.text = "Trial Questionnaire";
+        titleText.fontSize = 32;
+        titleText.alignment = TextAlignmentOptions.Center;
+        titleText.color = Color.white;
+        RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+        titleRect.anchoredPosition = new Vector2(0, 220);
+        titleRect.sizeDelta = new Vector2(700, 60);
+
+        // Q1: Time Estimate Text & Input
+        CreateQuestionLabel("Q1: How long did the tunnel last? (seconds)", new Vector2(0, 150));
+        GameObject q1InputObj = CreateInputField(new Vector2(0, 100), "Enter estimated seconds...");
+        timeEstimateInput = q1InputObj.GetComponent<TMP_InputField>();
+
+        // Q2: Passage of Time Slider
+        CreateQuestionLabel("Q2: How fast did time pass for you? (0: Very Slow ~ 100: Very Fast)", new Vector2(0, 30));
+        var passageGroup = CreateSlider(new Vector2(0, -20));
+        passageOfTimeSlider = passageGroup.slider;
+        passageValueText = passageGroup.valText;
+
+        // Q3: Vection Slider
+        CreateQuestionLabel("Q3: Did you feel like you were moving? (0: Not at all ~ 100: Intensely)", new Vector2(0, -90));
+        var vectionGroup = CreateSlider(new Vector2(0, -140));
+        vectionSlider = vectionGroup.slider;
+        vectionValueText = vectionGroup.valText;
+
+        // Submit Button
+        GameObject btnObj = new GameObject("SubmitButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+        btnObj.transform.SetParent(transform, false);
+        Image btnImg = btnObj.GetComponent<Image>();
+        btnImg.color = new Color(0.2f, 0.6f, 1.0f, 1.0f);
+        submitButton = btnObj.GetComponent<Button>();
+        submitButton.onClick.AddListener(OnSubmitClicked);
+        RectTransform btnRect = btnObj.GetComponent<RectTransform>();
+        btnRect.anchoredPosition = new Vector2(0, -230);
+        btnRect.sizeDelta = new Vector2(240, 60);
+
+        GameObject btnTxtObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        btnTxtObj.transform.SetParent(btnObj.transform, false);
+        var btnTxt = btnTxtObj.GetComponent<TextMeshProUGUI>();
+        btnTxt.text = "SUBMIT (次へ)";
+        btnTxt.fontSize = 24;
+        btnTxt.alignment = TextAlignmentOptions.Center;
+        btnTxt.color = Color.white;
+        RectTransform btnTxtRect = btnTxtObj.GetComponent<RectTransform>();
+        btnTxtRect.anchorMin = Vector2.zero;
+        btnTxtRect.anchorMax = Vector2.one;
+        btnTxtRect.sizeDelta = Vector2.zero;
+    }
+
+    private void CreateQuestionLabel(string text, Vector2 pos)
+    {
+        GameObject obj = new GameObject("Q_Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        obj.transform.SetParent(transform, false);
+        var txt = obj.GetComponent<TextMeshProUGUI>();
+        txt.text = text;
+        txt.fontSize = 20;
+        txt.alignment = TextAlignmentOptions.Left;
+        txt.color = new Color(0.9f, 0.9f, 0.95f);
+        RectTransform r = obj.GetComponent<RectTransform>();
+        r.anchoredPosition = pos;
+        r.sizeDelta = new Vector2(700, 40);
+    }
+
+    private GameObject CreateInputField(Vector2 pos, string placeholderText)
+    {
+        GameObject inputObj = new GameObject("InputField", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(TMP_InputField));
+        inputObj.transform.SetParent(transform, false);
+        Image img = inputObj.GetComponent<Image>();
+        img.color = new Color(0.2f, 0.2f, 0.25f);
+        RectTransform r = inputObj.GetComponent<RectTransform>();
+        r.anchoredPosition = pos;
+        r.sizeDelta = new Vector2(300, 45);
+
+        GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObj.transform.SetParent(inputObj.transform, false);
+        var txt = textObj.GetComponent<TextMeshProUGUI>();
+        txt.fontSize = 22;
+        txt.color = Color.white;
+        RectTransform tr = textObj.GetComponent<RectTransform>();
+        tr.anchorMin = Vector2.zero; tr.anchorMax = Vector2.one; tr.sizeDelta = Vector2.zero;
+
+        TMP_InputField inputField = inputObj.GetComponent<TMP_InputField>();
+        inputField.textComponent = txt;
+        inputField.contentType = TMP_InputField.ContentType.DecimalNumber;
+        return inputObj;
+    }
+
+    private (Slider slider, TextMeshProUGUI valText) CreateSlider(Vector2 pos)
+    {
+        GameObject sliderObj = new GameObject("Slider", typeof(RectTransform), typeof(Slider));
+        sliderObj.transform.SetParent(transform, false);
+        Slider slider = sliderObj.GetComponent<Slider>();
+        slider.minValue = 0f;
+        slider.maxValue = 100f;
+        slider.value = 50f;
+        RectTransform sr = sliderObj.GetComponent<RectTransform>();
+        sr.anchoredPosition = pos;
+        sr.sizeDelta = new Vector2(500, 30);
+
+        // Background
+        GameObject bg = new GameObject("Background", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        bg.transform.SetParent(sliderObj.transform, false);
+        bg.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.25f);
+        RectTransform bgr = bg.GetComponent<RectTransform>();
+        bgr.anchorMin = Vector2.zero; bgr.anchorMax = Vector2.one; bgr.sizeDelta = Vector2.zero;
+
+        // Fill Area & Fill
+        GameObject fillArea = new GameObject("Fill Area", typeof(RectTransform));
+        fillArea.transform.SetParent(sliderObj.transform, false);
+        RectTransform far = fillArea.GetComponent<RectTransform>();
+        far.anchorMin = Vector2.zero; far.anchorMax = Vector2.one; far.sizeDelta = Vector2.zero;
+
+        GameObject fill = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        fill.transform.SetParent(fillArea.transform, false);
+        fill.GetComponent<Image>().color = new Color(0.2f, 0.7f, 1.0f);
+        RectTransform fr = fill.GetComponent<RectTransform>();
+        fr.anchorMin = Vector2.zero; fr.anchorMax = Vector2.one; fr.sizeDelta = Vector2.zero;
+        slider.fillRect = fr;
+
+        // Handle Area & Handle
+        GameObject handleArea = new GameObject("Handle Slide Area", typeof(RectTransform));
+        handleArea.transform.SetParent(sliderObj.transform, false);
+        RectTransform har = handleArea.GetComponent<RectTransform>();
+        har.anchorMin = Vector2.zero; har.anchorMax = Vector2.one; har.sizeDelta = Vector2.zero;
+
+        GameObject handle = new GameObject("Handle", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        handle.transform.SetParent(handleArea.transform, false);
+        handle.GetComponent<Image>().color = Color.white;
+        RectTransform hr = handle.GetComponent<RectTransform>();
+        hr.sizeDelta = new Vector2(25, 35);
+        slider.handleRect = hr;
+        slider.targetGraphic = handle.GetComponent<Image>();
+
+        // Value Text
+        GameObject valObj = new GameObject("ValText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        valObj.transform.SetParent(transform, false);
+        var valTxt = valObj.GetComponent<TextMeshProUGUI>();
+        valTxt.text = "50";
+        valTxt.fontSize = 24;
+        valTxt.alignment = TextAlignmentOptions.Left;
+        valTxt.color = Color.yellow;
+        RectTransform vr = valObj.GetComponent<RectTransform>();
+        vr.anchoredPosition = new Vector2(290, pos.y);
+        vr.sizeDelta = new Vector2(100, 40);
+
+        slider.onValueChanged.AddListener(v => valTxt.text = $"{v:F0}");
+
+        return (slider, valTxt);
     }
 
     public void Show(int trialIndex, int totalTrials, Action<float, float, float> onSubmitted)
     {
         _onSubmittedCallback = onSubmitted;
+        EnsureUIBuilt();
         gameObject.SetActive(true);
 
         if (titleText != null)
