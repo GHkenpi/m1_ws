@@ -291,33 +291,30 @@ public class VRQuestionnaireUI : MonoBehaviour
         bool isTriggerPressed = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
 
         // SteamVR Input 経由のトラックパッド/トリガー入力判定
-        if (Valve.VR.SteamVR_Input.isInitialized)
+        try
         {
-            try
+            var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
+            if (rightHand != null && rightHand.gameObject.activeInHierarchy)
             {
-                var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
-                if (rightHand != null && rightHand.gameObject.activeInHierarchy)
+                if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
                 {
-                    if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
-                    {
-                        isTriggerPressed = true;
-                    }
+                    isTriggerPressed = true;
+                }
 
-                    var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
-                    if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
-                    {
-                        if (trackpadPos.y > 0.3f) isUpPressed = true;
-                        else if (trackpadPos.y < -0.3f) isDownPressed = true;
+                var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
+                if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
+                {
+                    if (trackpadPos.y > 0.3f) isUpPressed = true;
+                    else if (trackpadPos.y < -0.3f) isDownPressed = true;
 
-                        if (trackpadPos.x < -0.3f) isLeftPressed = true;
-                        else if (trackpadPos.x > 0.3f) isRightPressed = true;
-                    }
+                    if (trackpadPos.x < -0.3f) isLeftPressed = true;
+                    else if (trackpadPos.x > 0.3f) isRightPressed = true;
                 }
             }
-            catch (System.Exception)
-            {
-                // SteamVR未接続・ハンド非アクティブ時の例外保護
-            }
+        }
+        catch (System.Exception)
+        {
+            // SteamVR未接続・ハンド非アクティブ時の例外保護
         }
 
         // 項目間移動 (トラックパッド上下)
