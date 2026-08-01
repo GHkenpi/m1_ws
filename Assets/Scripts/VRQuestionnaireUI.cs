@@ -294,31 +294,34 @@ public class VRQuestionnaireUI : MonoBehaviour
         var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
         if (rightHand != null)
         {
-            var touchPosAction = Valve.VR.SteamVR_Input.GetAction<Valve.VR.SteamVR_Action_Vector2>("TouchpadPos");
-            if (touchPosAction == null)
+            // 安全なトリガー入力取得
+            if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.activeBinding)
             {
-                touchPosAction = Valve.VR.SteamVR_Input.GetAction<Valve.VR.SteamVR_Action_Vector2>("Trackpad");
+                if (rightHand.grabPinchAction.GetStateDown(rightHand.handType))
+                {
+                    isTriggerPressed = true;
+                }
             }
 
-            if (touchPosAction != null)
+            // 安全なトラックパッド座標取得
+            var defaultSet = Valve.VR.SteamVR_Input.GetActionSet("default");
+            if (defaultSet != null && defaultSet.isActive)
             {
-                trackpadPos = touchPosAction.GetAxis(rightHand.handType);
-            }
+                var touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadPos");
+                if (touchPosAction != null && touchPosAction.activeBinding)
+                {
+                    trackpadPos = touchPosAction.GetAxis(rightHand.handType);
+                }
 
-            if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
-            {
-                isTriggerPressed = true;
-            }
+                var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
+                if (teleportAction != null && teleportAction.activeBinding && teleportAction.GetStateDown(rightHand.handType))
+                {
+                    if (trackpadPos.y > 0.3f) isUpPressed = true;
+                    else if (trackpadPos.y < -0.3f) isDownPressed = true;
 
-            // トラックパッドクリック判定
-            var teleportAction = Valve.VR.SteamVR_Input.GetAction<Valve.VR.SteamVR_Action_Boolean>("Teleport");
-            if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
-            {
-                if (trackpadPos.y > 0.3f) isUpPressed = true;
-                else if (trackpadPos.y < -0.3f) isDownPressed = true;
-
-                if (trackpadPos.x < -0.3f) isLeftPressed = true;
-                else if (trackpadPos.x > 0.3f) isRightPressed = true;
+                    if (trackpadPos.x < -0.3f) isLeftPressed = true;
+                    else if (trackpadPos.x > 0.3f) isRightPressed = true;
+                }
             }
         }
 
