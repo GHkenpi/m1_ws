@@ -48,6 +48,7 @@ public class AutomatedExperimentManager : MonoBehaviour
     private void Start()
     {
         if (tunnelScroll == null) tunnelScroll = FindObjectOfType<TunnelScrollController>();
+        if (questionnaireUI == null) questionnaireUI = FindObjectOfType<VRQuestionnaireUI>(true);
         if (dataLogger == null)
         {
             dataLogger = gameObject.AddComponent<ExperimentDataLogger>();

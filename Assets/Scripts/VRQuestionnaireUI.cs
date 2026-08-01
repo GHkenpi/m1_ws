@@ -83,18 +83,31 @@ public class VRQuestionnaireUI : MonoBehaviour
         _onSubmittedCallback?.Invoke(dv1, dv2, dv3);
     }
 
-    /// <summary>VRカメラの正面2mにパネルを配置</summary>
+    /// <summary>VRカメラの正面1.8mにパネルを配置</summary>
     private void PositionInFrontOfCamera()
     {
         Camera mainCam = Camera.main;
+        if (mainCam == null)
+        {
+            mainCam = FindObjectOfType<Camera>();
+        }
+
         if (mainCam != null)
         {
             Vector3 forward = mainCam.transform.forward;
+            if (forward.sqrMagnitude < 0.01f) forward = Vector3.forward;
             forward.y = 0;
             forward.Normalize();
 
-            transform.position = mainCam.transform.position + forward * 1.8f + Vector3.up * 0.1f;
+            transform.position = mainCam.transform.position + forward * 1.8f;
             transform.rotation = Quaternion.LookRotation(forward);
+            Debug.Log($"[VRQuestionnaireUI] Panel positioned in front of camera at: {transform.position}");
+        }
+        else
+        {
+            transform.position = new Vector3(0, 1.2f, 1.8f);
+            transform.rotation = Quaternion.identity;
+            Debug.LogWarning("[VRQuestionnaireUI] Camera not found. Panel placed at default (0, 1.2, 1.8)");
         }
     }
 }
