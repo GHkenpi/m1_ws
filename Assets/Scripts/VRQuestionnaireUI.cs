@@ -296,7 +296,7 @@ public class VRQuestionnaireUI : MonoBehaviour
             try
             {
                 var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
-                if (rightHand != null)
+                if (rightHand != null && rightHand.isTracked)
                 {
                     if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
                     {
