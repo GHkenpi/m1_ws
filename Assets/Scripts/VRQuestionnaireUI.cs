@@ -294,9 +294,15 @@ public class VRQuestionnaireUI : MonoBehaviour
         var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
         if (rightHand != null)
         {
-            if (rightHand.trackpadAction != null)
+            var touchPosAction = Valve.VR.SteamVR_Input.GetAction<Valve.VR.SteamVR_Action_Vector2>("TouchpadPos");
+            if (touchPosAction == null)
             {
-                trackpadPos = rightHand.trackpadAction.GetAxis(rightHand.handType);
+                touchPosAction = Valve.VR.SteamVR_Input.GetAction<Valve.VR.SteamVR_Action_Vector2>("Trackpad");
+            }
+
+            if (touchPosAction != null)
+            {
+                trackpadPos = touchPosAction.GetAxis(rightHand.handType);
             }
 
             if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
