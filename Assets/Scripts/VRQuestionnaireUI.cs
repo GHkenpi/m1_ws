@@ -303,13 +303,8 @@ public class VRQuestionnaireUI : MonoBehaviour
                         isTriggerPressed = true;
                     }
 
-                    var trackpadAction = rightHand.trackpadAction;
-                    if (trackpadAction != null)
-                    {
-                        trackpadPos = trackpadAction.GetAxis(rightHand.handType);
-                    }
-
-                    if (rightHand.teleportAction != null && rightHand.teleportAction.GetStateDown(rightHand.handType))
+                    var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
+                    if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
                     {
                         if (trackpadPos.y > 0.3f) isUpPressed = true;
                         else if (trackpadPos.y < -0.3f) isDownPressed = true;
