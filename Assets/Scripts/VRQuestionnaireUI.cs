@@ -305,7 +305,7 @@ public class VRQuestionnaireUI : MonoBehaviour
 
             // 安全なトラックパッド座標取得
             var defaultSet = Valve.VR.SteamVR_Input.GetActionSet("default");
-            if (defaultSet != null && defaultSet.isActive)
+            if (defaultSet != null && defaultSet.IsActive(rightHand.handType))
             {
                 var touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadPos");
                 if (touchPosAction != null && touchPosAction.activeBinding)
