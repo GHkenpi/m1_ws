@@ -60,12 +60,15 @@ public class VRQuestionnaireUI : MonoBehaviour
         bgRect.anchorMax = Vector2.one;
         bgRect.sizeDelta = Vector2.zero;
 
+        Font font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        if (font == null) font = Font.CreateDynamicFontFromOSFont("Arial", 20);
+
         // タイトル
         GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         titleObj.transform.SetParent(transform, false);
         var titleTxt = titleObj.GetComponent<UnityEngine.UI.Text>();
         titleTxt.text = "Trial Questionnaire";
-        titleTxt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        titleTxt.font = font;
         titleTxt.fontSize = 28;
         titleTxt.alignment = TextAnchor.MiddleCenter;
         titleTxt.color = Color.white;
@@ -74,19 +77,19 @@ public class VRQuestionnaireUI : MonoBehaviour
         titleRect.sizeDelta = new Vector2(700, 60);
 
         // Q1: Time Estimate Text & Input
-        CreateQuestionLabel("Q1: How long did the tunnel last? (seconds)", new Vector2(0, 150));
-        GameObject q1InputObj = CreateInputField(new Vector2(0, 100), "Enter estimated seconds...");
-        timeEstimateInput = q1InputObj.GetComponent<TMP_InputField>();
+        CreateQuestionLabel("Q1: How long did the tunnel last? (seconds)", new Vector2(0, 150), font);
+        GameObject q1InputObj = CreateInputField(new Vector2(0, 100), "Enter estimated seconds...", font);
+        timeEstimateInput = q1InputObj.GetComponent<InputField>();
 
         // Q2: Passage of Time Slider
-        CreateQuestionLabel("Q2: How fast did time pass for you? (0: Slow ~ 100: Fast)", new Vector2(0, 30));
-        var passageGroup = CreateSlider(new Vector2(0, -20));
+        CreateQuestionLabel("Q2: How fast did time pass for you? (0: Slow ~ 100: Fast)", new Vector2(0, 30), font);
+        var passageGroup = CreateSlider(new Vector2(0, -20), font);
         passageOfTimeSlider = passageGroup.slider;
         passageValueText = passageGroup.valText;
 
         // Q3: Vection Slider
-        CreateQuestionLabel("Q3: Did you feel like you were moving? (0: Not at all ~ 100: Intensely)", new Vector2(0, -90));
-        var vectionGroup = CreateSlider(new Vector2(0, -140));
+        CreateQuestionLabel("Q3: Did you feel like you were moving? (0: Not at all ~ 100: Intensely)", new Vector2(0, -90), font);
+        var vectionGroup = CreateSlider(new Vector2(0, -140), font);
         vectionSlider = vectionGroup.slider;
         vectionValueText = vectionGroup.valText;
 
@@ -105,7 +108,7 @@ public class VRQuestionnaireUI : MonoBehaviour
         btnTxtObj.transform.SetParent(btnObj.transform, false);
         var btnTxt = btnTxtObj.GetComponent<UnityEngine.UI.Text>();
         btnTxt.text = "SUBMIT (次へ)";
-        btnTxt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        btnTxt.font = font;
         btnTxt.fontSize = 22;
         btnTxt.alignment = TextAnchor.MiddleCenter;
         btnTxt.color = Color.white;
@@ -115,13 +118,13 @@ public class VRQuestionnaireUI : MonoBehaviour
         btnTxtRect.sizeDelta = Vector2.zero;
     }
 
-    private void CreateQuestionLabel(string text, Vector2 pos)
+    private void CreateQuestionLabel(string text, Vector2 pos, Font font)
     {
         GameObject obj = new GameObject("Q_Label", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         obj.transform.SetParent(transform, false);
         var txt = obj.GetComponent<UnityEngine.UI.Text>();
         txt.text = text;
-        txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        txt.font = font;
         txt.fontSize = 18;
         txt.alignment = TextAnchor.MiddleLeft;
         txt.color = new Color(0.95f, 0.95f, 1.0f);
@@ -130,7 +133,7 @@ public class VRQuestionnaireUI : MonoBehaviour
         r.sizeDelta = new Vector2(700, 40);
     }
 
-    private GameObject CreateInputField(Vector2 pos, string placeholderText)
+    private GameObject CreateInputField(Vector2 pos, string placeholderText, Font font)
     {
         GameObject inputObj = new GameObject("InputField", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(InputField));
         inputObj.transform.SetParent(transform, false);
@@ -143,7 +146,7 @@ public class VRQuestionnaireUI : MonoBehaviour
         GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         textObj.transform.SetParent(inputObj.transform, false);
         var txt = textObj.GetComponent<UnityEngine.UI.Text>();
-        txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        txt.font = font;
         txt.fontSize = 20;
         txt.alignment = TextAnchor.MiddleCenter;
         txt.color = Color.white;
@@ -156,7 +159,7 @@ public class VRQuestionnaireUI : MonoBehaviour
         return inputObj;
     }
 
-    private (Slider slider, UnityEngine.UI.Text valText) CreateSlider(Vector2 pos)
+    private (Slider slider, UnityEngine.UI.Text valText) CreateSlider(Vector2 pos, Font font)
     {
         GameObject sliderObj = new GameObject("Slider", typeof(RectTransform), typeof(Slider));
         sliderObj.transform.SetParent(transform, false);
@@ -207,7 +210,7 @@ public class VRQuestionnaireUI : MonoBehaviour
         valObj.transform.SetParent(transform, false);
         var valTxt = valObj.GetComponent<UnityEngine.UI.Text>();
         valTxt.text = "50";
-        valTxt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        valTxt.font = font;
         valTxt.fontSize = 22;
         valTxt.alignment = TextAnchor.MiddleLeft;
         valTxt.color = Color.yellow;
