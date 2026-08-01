@@ -299,21 +299,25 @@ public class VRQuestionnaireUI : MonoBehaviour
                 trackpadPos = rightHand.trackpadAction.GetAxis(rightHand.handType);
             }
 
-            if (rightHand.controller != null)
+            if (rightHand.uiClickAction != null && rightHand.uiClickAction.GetStateDown(rightHand.handType))
             {
-                if (rightHand.controller.GetPressDown(Valve.VR.EVRButtonId.k_EButton_SteamVR_Touchpad))
-                {
-                    if (trackpadPos.y > 0.3f) isUpPressed = true;
-                    else if (trackpadPos.y < -0.3f) isDownPressed = true;
+                isTriggerPressed = true;
+            }
 
-                    if (trackpadPos.x < -0.3f) isLeftPressed = true;
-                    else if (trackpadPos.x > 0.3f) isRightPressed = true;
-                }
+            if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
+            {
+                isTriggerPressed = true;
+            }
 
-                if (rightHand.controller.GetHairTriggerDown())
-                {
-                    isTriggerPressed = true;
-                }
+            // トラックパッドクリック判定
+            var teleportAction = Valve.VR.SteamVR_Input.GetAction<Valve.VR.SteamVR_Action_Boolean>("Teleport");
+            if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
+            {
+                if (trackpadPos.y > 0.3f) isUpPressed = true;
+                else if (trackpadPos.y < -0.3f) isDownPressed = true;
+
+                if (trackpadPos.x < -0.3f) isLeftPressed = true;
+                else if (trackpadPos.x > 0.3f) isRightPressed = true;
             }
         }
 
