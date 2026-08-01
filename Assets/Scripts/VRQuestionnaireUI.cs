@@ -10,13 +10,13 @@ using TMPro;
 public class VRQuestionnaireUI : MonoBehaviour
 {
     [Header("UI Controls")]
-    public TMP_InputField timeEstimateInput; // DV1 (直感的な秒数推定)
+    public InputField timeEstimateInput; // DV1 (直感的な秒数推定)
     public Slider passageOfTimeSlider;        // DV2 (VAS 0-100)
-    public TextMeshProUGUI passageValueText;
+    public UnityEngine.UI.Text passageValueText;
     public Slider vectionSlider;               // DV3 (VAS 0-100)
-    public TextMeshProUGUI vectionValueText;
+    public UnityEngine.UI.Text vectionValueText;
     public Button submitButton;
-    public TextMeshProUGUI titleText;
+    public UnityEngine.UI.Text titleText;
 
     private Action<float, float, float> _onSubmittedCallback;
 
@@ -61,13 +61,14 @@ public class VRQuestionnaireUI : MonoBehaviour
         bgRect.sizeDelta = Vector2.zero;
 
         // タイトル
-        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         titleObj.transform.SetParent(transform, false);
-        titleText = titleObj.GetComponent<TextMeshProUGUI>();
-        titleText.text = "Trial Questionnaire";
-        titleText.fontSize = 32;
-        titleText.alignment = TextAlignmentOptions.Center;
-        titleText.color = Color.white;
+        var titleTxt = titleObj.GetComponent<UnityEngine.UI.Text>();
+        titleTxt.text = "Trial Questionnaire";
+        titleTxt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        titleTxt.fontSize = 28;
+        titleTxt.alignment = TextAnchor.MiddleCenter;
+        titleTxt.color = Color.white;
         RectTransform titleRect = titleObj.GetComponent<RectTransform>();
         titleRect.anchoredPosition = new Vector2(0, 220);
         titleRect.sizeDelta = new Vector2(700, 60);
@@ -78,7 +79,7 @@ public class VRQuestionnaireUI : MonoBehaviour
         timeEstimateInput = q1InputObj.GetComponent<TMP_InputField>();
 
         // Q2: Passage of Time Slider
-        CreateQuestionLabel("Q2: How fast did time pass for you? (0: Very Slow ~ 100: Very Fast)", new Vector2(0, 30));
+        CreateQuestionLabel("Q2: How fast did time pass for you? (0: Slow ~ 100: Fast)", new Vector2(0, 30));
         var passageGroup = CreateSlider(new Vector2(0, -20));
         passageOfTimeSlider = passageGroup.slider;
         passageValueText = passageGroup.valText;
@@ -100,12 +101,13 @@ public class VRQuestionnaireUI : MonoBehaviour
         btnRect.anchoredPosition = new Vector2(0, -230);
         btnRect.sizeDelta = new Vector2(240, 60);
 
-        GameObject btnTxtObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject btnTxtObj = new GameObject("Text", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         btnTxtObj.transform.SetParent(btnObj.transform, false);
-        var btnTxt = btnTxtObj.GetComponent<TextMeshProUGUI>();
+        var btnTxt = btnTxtObj.GetComponent<UnityEngine.UI.Text>();
         btnTxt.text = "SUBMIT (次へ)";
-        btnTxt.fontSize = 24;
-        btnTxt.alignment = TextAlignmentOptions.Center;
+        btnTxt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        btnTxt.fontSize = 22;
+        btnTxt.alignment = TextAnchor.MiddleCenter;
         btnTxt.color = Color.white;
         RectTransform btnTxtRect = btnTxtObj.GetComponent<RectTransform>();
         btnTxtRect.anchorMin = Vector2.zero;
@@ -115,13 +117,14 @@ public class VRQuestionnaireUI : MonoBehaviour
 
     private void CreateQuestionLabel(string text, Vector2 pos)
     {
-        GameObject obj = new GameObject("Q_Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject obj = new GameObject("Q_Label", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         obj.transform.SetParent(transform, false);
-        var txt = obj.GetComponent<TextMeshProUGUI>();
+        var txt = obj.GetComponent<UnityEngine.UI.Text>();
         txt.text = text;
-        txt.fontSize = 20;
-        txt.alignment = TextAlignmentOptions.Left;
-        txt.color = new Color(0.9f, 0.9f, 0.95f);
+        txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        txt.fontSize = 18;
+        txt.alignment = TextAnchor.MiddleLeft;
+        txt.color = new Color(0.95f, 0.95f, 1.0f);
         RectTransform r = obj.GetComponent<RectTransform>();
         r.anchoredPosition = pos;
         r.sizeDelta = new Vector2(700, 40);
@@ -129,7 +132,7 @@ public class VRQuestionnaireUI : MonoBehaviour
 
     private GameObject CreateInputField(Vector2 pos, string placeholderText)
     {
-        GameObject inputObj = new GameObject("InputField", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(TMP_InputField));
+        GameObject inputObj = new GameObject("InputField", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(InputField));
         inputObj.transform.SetParent(transform, false);
         Image img = inputObj.GetComponent<Image>();
         img.color = new Color(0.2f, 0.2f, 0.25f);
@@ -137,21 +140,23 @@ public class VRQuestionnaireUI : MonoBehaviour
         r.anchoredPosition = pos;
         r.sizeDelta = new Vector2(300, 45);
 
-        GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         textObj.transform.SetParent(inputObj.transform, false);
-        var txt = textObj.GetComponent<TextMeshProUGUI>();
-        txt.fontSize = 22;
+        var txt = textObj.GetComponent<UnityEngine.UI.Text>();
+        txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        txt.fontSize = 20;
+        txt.alignment = TextAnchor.MiddleCenter;
         txt.color = Color.white;
         RectTransform tr = textObj.GetComponent<RectTransform>();
         tr.anchorMin = Vector2.zero; tr.anchorMax = Vector2.one; tr.sizeDelta = Vector2.zero;
 
-        TMP_InputField inputField = inputObj.GetComponent<TMP_InputField>();
+        InputField inputField = inputObj.GetComponent<InputField>();
         inputField.textComponent = txt;
-        inputField.contentType = TMP_InputField.ContentType.DecimalNumber;
+        inputField.contentType = InputField.ContentType.DecimalNumber;
         return inputObj;
     }
 
-    private (Slider slider, TextMeshProUGUI valText) CreateSlider(Vector2 pos)
+    private (Slider slider, UnityEngine.UI.Text valText) CreateSlider(Vector2 pos)
     {
         GameObject sliderObj = new GameObject("Slider", typeof(RectTransform), typeof(Slider));
         sliderObj.transform.SetParent(transform, false);
@@ -198,12 +203,13 @@ public class VRQuestionnaireUI : MonoBehaviour
         slider.targetGraphic = handle.GetComponent<Image>();
 
         // Value Text
-        GameObject valObj = new GameObject("ValText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject valObj = new GameObject("ValText", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         valObj.transform.SetParent(transform, false);
-        var valTxt = valObj.GetComponent<TextMeshProUGUI>();
+        var valTxt = valObj.GetComponent<UnityEngine.UI.Text>();
         valTxt.text = "50";
-        valTxt.fontSize = 24;
-        valTxt.alignment = TextAlignmentOptions.Left;
+        valTxt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        valTxt.fontSize = 22;
+        valTxt.alignment = TextAnchor.MiddleLeft;
         valTxt.color = Color.yellow;
         RectTransform vr = valObj.GetComponent<RectTransform>();
         vr.anchoredPosition = new Vector2(290, pos.y);
