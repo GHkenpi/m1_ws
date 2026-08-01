@@ -299,11 +299,6 @@ public class VRQuestionnaireUI : MonoBehaviour
                 trackpadPos = rightHand.trackpadAction.GetAxis(rightHand.handType);
             }
 
-            if (rightHand.uiClickAction != null && rightHand.uiClickAction.GetStateDown(rightHand.handType))
-            {
-                isTriggerPressed = true;
-            }
-
             if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
             {
                 isTriggerPressed = true;
