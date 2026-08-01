@@ -262,6 +262,11 @@ public class VRQuestionnaireUI : MonoBehaviour
         PositionInFrontOfCamera();
     }
 
+    public void Hide()
+    {
+        gameObject.SetActive(false);
+    }
+
     private int _focusedItemIndex = 0; // 0: Q1(時間推定), 1: Q2(経過速度), 2: Q3(ベクション), 3: 送信ボタン
     private float _dv1Value = 30f;
     private float _dv2Value = 50f;
