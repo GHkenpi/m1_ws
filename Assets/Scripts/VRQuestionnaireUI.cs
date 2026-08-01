@@ -60,35 +60,36 @@ public class VRQuestionnaireUI : MonoBehaviour
         bgRect.anchorMax = Vector2.one;
         bgRect.sizeDelta = Vector2.zero;
 
-        Font font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        if (font == null) font = Font.CreateDynamicFontFromOSFont("Arial", 20);
+        Font font = Font.CreateDynamicFontFromOSFont("MS Gothic", 20);
+        if (font == null) font = Font.CreateDynamicFontFromOSFont("Yu Gothic", 20);
+        if (font == null) font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
         // タイトル
         GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         titleObj.transform.SetParent(transform, false);
-        var titleTxt = titleObj.GetComponent<UnityEngine.UI.Text>();
-        titleTxt.text = "Trial Questionnaire";
-        titleTxt.font = font;
-        titleTxt.fontSize = 28;
-        titleTxt.alignment = TextAnchor.MiddleCenter;
-        titleTxt.color = Color.white;
+        titleText = titleObj.GetComponent<UnityEngine.UI.Text>();
+        titleText.text = "試行評価アンケート";
+        titleText.font = font;
+        titleText.fontSize = 28;
+        titleText.alignment = TextAnchor.MiddleCenter;
+        titleText.color = Color.white;
         RectTransform titleRect = titleObj.GetComponent<RectTransform>();
         titleRect.anchoredPosition = new Vector2(0, 220);
         titleRect.sizeDelta = new Vector2(700, 60);
 
         // Q1: Time Estimate Text & Input
-        CreateQuestionLabel("Q1: How long did the tunnel last? (seconds)", new Vector2(0, 150), font);
-        GameObject q1InputObj = CreateInputField(new Vector2(0, 100), "Enter estimated seconds...", font);
+        CreateQuestionLabel("Q1: 直感的にトンネルは何秒間続いて見えましたか？ (秒)", new Vector2(0, 150), font);
+        GameObject q1InputObj = CreateInputField(new Vector2(0, 100), "推定秒数を入力...", font);
         timeEstimateInput = q1InputObj.GetComponent<InputField>();
 
         // Q2: Passage of Time Slider
-        CreateQuestionLabel("Q2: How fast did time pass for you? (0: Slow ~ 100: Fast)", new Vector2(0, 30), font);
+        CreateQuestionLabel("Q2: 時間の経過速度はどれくらい速く感じましたか？ (0:非常に遅い 〜 100:非常に速い)", new Vector2(0, 30), font);
         var passageGroup = CreateSlider(new Vector2(0, -20), font);
         passageOfTimeSlider = passageGroup.slider;
         passageValueText = passageGroup.valText;
 
         // Q3: Vection Slider
-        CreateQuestionLabel("Q3: Did you feel like you were moving? (0: Not at all ~ 100: Intensely)", new Vector2(0, -90), font);
+        CreateQuestionLabel("Q3: 自分自身が移動しているように感じましたか？ (0:全く感じない 〜 100:非常に強く感じた)", new Vector2(0, -90), font);
         var vectionGroup = CreateSlider(new Vector2(0, -140), font);
         vectionSlider = vectionGroup.slider;
         vectionValueText = vectionGroup.valText;
@@ -107,7 +108,7 @@ public class VRQuestionnaireUI : MonoBehaviour
         GameObject btnTxtObj = new GameObject("Text", typeof(RectTransform), typeof(UnityEngine.UI.Text));
         btnTxtObj.transform.SetParent(btnObj.transform, false);
         var btnTxt = btnTxtObj.GetComponent<UnityEngine.UI.Text>();
-        btnTxt.text = "SUBMIT (次へ)";
+        btnTxt.text = "回答を送信 (次へ)";
         btnTxt.font = font;
         btnTxt.fontSize = 22;
         btnTxt.alignment = TextAnchor.MiddleCenter;
@@ -231,7 +232,7 @@ public class VRQuestionnaireUI : MonoBehaviour
 
         if (titleText != null)
         {
-            titleText.text = $"Trial Questionnaire ({trialIndex} / {totalTrials})";
+            titleText.text = $"試行評価アンケート ({trialIndex} / {totalTrials})";
         }
 
         // 初期リセット
