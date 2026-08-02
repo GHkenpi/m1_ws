@@ -307,8 +307,9 @@ public class VRQuestionnaireUI : MonoBehaviour
             // トラックパッド座標 (Y軸: 上下)
             try
             {
-                var touchPosAction = Valve.VR.SteamVR_Actions.default_TouchpadPos;
-                if (touchPosAction != null && touchPosAction.GetActive(rightHand.handType))
+                var touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadTouch");
+                if (touchPosAction == null) touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
+                if (touchPosAction != null)
                 {
                     trackpadPos = touchPosAction.GetAxis(rightHand.handType);
                 }
