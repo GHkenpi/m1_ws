@@ -304,14 +304,14 @@ public class VRQuestionnaireUI : MonoBehaviour
 
                 // トラックパッド座標 (Y軸: 上下)
                 var touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadPos");
-                if (touchPosAction != null)
+                if (touchPosAction != null && touchPosAction.activeBinding)
                 {
                     trackpadPos = touchPosAction.GetAxis(rightHand.handType);
                 }
 
                 // トラックパッドクリック判定
                 var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
-                if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
+                if (teleportAction != null && teleportAction.activeBinding && teleportAction.GetStateDown(rightHand.handType))
                 {
                     if (trackpadPos.y > 0.2f) isUpPressed = true;
                     else if (trackpadPos.y < -0.2f) isDownPressed = true;
