@@ -296,19 +296,25 @@ public class VRQuestionnaireUI : MonoBehaviour
             var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
             if (rightHand != null && rightHand.gameObject.activeInHierarchy)
             {
+                // トリガー判定 (決定 / 次へ)
                 if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
                 {
                     isTriggerPressed = true;
                 }
 
+                // トラックパッド座標 (Y軸: 上下)
+                var trackpadAction = rightHand.trackpadAction;
+                if (trackpadAction != null)
+                {
+                    trackpadPos = trackpadAction.GetAxis(rightHand.handType);
+                }
+
+                // トラックパッドクリック判定
                 var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
                 if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
                 {
-                    if (trackpadPos.y > 0.3f) isUpPressed = true;
-                    else if (trackpadPos.y < -0.3f) isDownPressed = true;
-
-                    if (trackpadPos.x < -0.3f) isLeftPressed = true;
-                    else if (trackpadPos.x > 0.3f) isRightPressed = true;
+                    if (trackpadPos.y > 0.2f) isUpPressed = true;
+                    else if (trackpadPos.y < -0.2f) isDownPressed = true;
                 }
             }
         }
@@ -317,30 +323,28 @@ public class VRQuestionnaireUI : MonoBehaviour
             // SteamVR未接続・ハンド非アクティブ時の例外保護
         }
 
-        // 項目間移動 (トラックパッド上下)
+        // トラックパッドのアナログタッチ/連続入力 (Y軸 > 0.35 で加算、Y軸 < -0.35 で減算)
+        if (Mathf.Abs(trackpadPos.y) > 0.35f && Time.frameCount % 4 == 0)
+        {
+            if (trackpadPos.y > 0.35f) isUpPressed = true;
+            else if (trackpadPos.y < -0.35f) isDownPressed = true;
+        }
+
+        // トラックパッド上下（上：値上昇 +1 / 下：値減少 -1）
         if (isUpPressed)
         {
-            _focusedItemIndex = (_focusedItemIndex - 1 + 4) % 4;
-            UpdateFocusHighlight();
+            ChangeCurrentValue(1.0f);
         }
         else if (isDownPressed)
         {
-            _focusedItemIndex = (_focusedItemIndex + 1) % 4;
-            UpdateFocusHighlight();
+            ChangeCurrentValue(-1.0f);
         }
 
-        // 数値変更 (トラックパッド左右 / スクロール)
-        float changeStep = 1.0f;
-        if (isLeftPressed) ChangeCurrentValue(-changeStep);
-        if (isRightPressed) ChangeCurrentValue(changeStep);
+        // キーボード左右ショートカット対応
+        if (isLeftPressed) ChangeCurrentValue(-1.0f);
+        if (isRightPressed) ChangeCurrentValue(1.0f);
 
-        // トラックパッドのアナログ操作（Y軸スクロール）
-        if (Mathf.Abs(trackpadPos.y) > 0.5f && Time.frameCount % 5 == 0)
-        {
-            ChangeCurrentValue(Mathf.Sign(trackpadPos.y) * 1.0f);
-        }
-
-        // トリガーで決定・送信
+        // トリガーで決定・次項目へ移動・送信
         if (isTriggerPressed)
         {
             if (_focusedItemIndex == 3)
@@ -349,7 +353,7 @@ public class VRQuestionnaireUI : MonoBehaviour
             }
             else
             {
-                // 次の項目へ移動
+                // 次の質問項目へフォーカス移動
                 _focusedItemIndex = (_focusedItemIndex + 1) % 4;
                 UpdateFocusHighlight();
             }
