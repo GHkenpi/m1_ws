@@ -312,7 +312,7 @@ public class VRQuestionnaireUI : MonoBehaviour
                 {
                     var touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadTouch");
                     if (touchPosAction == null) touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
-                    if (touchPosAction != null && touchPosAction.actionPath != null && touchPosAction.GetActive(rightHand.handType))
+                    if (touchPosAction != null && touchPosAction.GetActive(rightHand.handType))
                     {
                         trackpadPos = touchPosAction.GetAxis(rightHand.handType);
                     }
