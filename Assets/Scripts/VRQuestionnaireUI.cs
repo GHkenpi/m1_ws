@@ -291,36 +291,41 @@ public class VRQuestionnaireUI : MonoBehaviour
         bool isTriggerPressed = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
 
         // SteamVR Input 経由のトラックパッド/トリガー入力判定
-        try
+        var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
+        if (rightHand != null && rightHand.gameObject.activeInHierarchy)
         {
-            var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
-            if (rightHand != null && rightHand.gameObject.activeInHierarchy)
+            // トリガー判定 (決定 / 次へ)
+            try
             {
-                // トリガー判定 (決定 / 次へ)
                 if (rightHand.grabPinchAction != null && rightHand.grabPinchAction.GetStateDown(rightHand.handType))
                 {
                     isTriggerPressed = true;
                 }
+            }
+            catch {}
 
-                // トラックパッド座標 (Y軸: 上下)
+            // トラックパッド座標 (Y軸: 上下)
+            try
+            {
                 var touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadPos");
-                if (touchPosAction != null && touchPosAction.activeBinding)
+                if (touchPosAction != null && touchPosAction.activeDevice != Valve.VR.SteamVR_Input_Sources.Any)
                 {
                     trackpadPos = touchPosAction.GetAxis(rightHand.handType);
                 }
+            }
+            catch {}
 
-                // トラックパッドクリック判定
+            // トラックパッドクリック判定
+            try
+            {
                 var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
-                if (teleportAction != null && teleportAction.activeBinding && teleportAction.GetStateDown(rightHand.handType))
+                if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
                 {
                     if (trackpadPos.y > 0.2f) isUpPressed = true;
                     else if (trackpadPos.y < -0.2f) isDownPressed = true;
                 }
             }
-        }
-        catch (System.Exception)
-        {
-            // SteamVR未接続・ハンド非アクティブ時の例外保護
+            catch {}
         }
 
         // トラックパッドのアナログタッチ/連続入力 (Y軸 > 0.35 で加算、Y軸 < -0.35 で減算)
