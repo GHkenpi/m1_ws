@@ -84,6 +84,12 @@ public class VRQuestionnaireUI : MonoBehaviour
         timeEstimateInput = q1InputObj.GetComponent<InputField>();
         q1ValueText = q1InputObj.GetComponentInChildren<UnityEngine.UI.Text>();
         if (q1ValueText != null) q1ValueText.text = "30 秒";
+        if (timeEstimateInput != null)
+        {
+            timeEstimateInput.onValueChanged.AddListener(val => {
+                if (float.TryParse(val, out float v)) _dv1Value = v;
+            });
+        }
 
         // Q2: Passage of Time Slider
         CreateQuestionLabel("Q2: 時間の経過速度はどれくらい速く感じましたか？ (0:非常に遅い 〜 100:非常に速い)", new Vector2(0, 30), font);
@@ -372,6 +378,7 @@ public class VRQuestionnaireUI : MonoBehaviour
             case 0:
                 _dv1Value = Mathf.Clamp(_dv1Value + delta, 0f, 120f);
                 if (q1ValueText != null) q1ValueText.text = $"{_dv1Value:F0} 秒";
+                if (timeEstimateInput != null) timeEstimateInput.text = $"{_dv1Value:F0}";
                 break;
             case 1:
                 _dv2Value = Mathf.Clamp(_dv2Value + delta, 0f, 100f);
