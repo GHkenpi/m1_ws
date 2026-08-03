@@ -291,57 +291,48 @@ public class VRQuestionnaireUI : MonoBehaviour
         bool isTriggerPressed = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
 
         // SteamVR Input 経由のトラックパッド/トリガー入力判定
-        if (Valve.VR.SteamVR.active)
+        try
         {
-            var playerInstance = Valve.VR.InteractionSystem.Player.instance;
-            if (playerInstance != null && playerInstance.rightHand != null)
+            var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
+            if (rightHand != null)
             {
-                var rightHand = playerInstance.rightHand;
-                if (rightHand.gameObject != null && rightHand.gameObject.activeInHierarchy)
+                // トリガー判定 (決定 / 次へ)
+                var triggerAction = rightHand.grabPinchAction;
+                if (triggerAction != null && triggerAction.GetStateDown(rightHand.handType))
                 {
-                    // トリガー判定 (決定 / 次へ)
-                    try
-                    {
-                        var trigger = rightHand.grabPinchAction;
-                        if (trigger != null && trigger.activeBinding && trigger.GetStateDown(rightHand.handType))
-                        {
-                            isTriggerPressed = true;
-                        }
-                    }
-                    catch {}
+                    isTriggerPressed = true;
+                }
 
-                    // トラックパッド座標 (Y軸: 上下)
-                    try
+                // トラックパッド座標 (Y軸: 上下)
+                var touchAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadTouch");
+                if (touchAction == null || !touchAction.active) touchAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
+                
+                if (touchAction != null)
+                {
+                    Vector2 pos = touchAction.GetAxis(rightHand.handType);
+                    if (pos.sqrMagnitude > 0.01f)
                     {
-                        var touchAction = Valve.VR.SteamVR_Input.GetAction<Valve.VR.SteamVR_Action_Vector2>("default", "TouchpadTouch");
-                        if (touchAction == null) touchAction = Valve.VR.SteamVR_Input.GetAction<Valve.VR.SteamVR_Action_Vector2>("default", "Touchpad");
-                        if (touchAction != null && touchAction.handle != 0 && touchAction.GetActive(rightHand.handType))
-                        {
-                            trackpadPos = touchAction.GetAxis(rightHand.handType);
-                        }
+                        trackpadPos = pos;
                     }
-                    catch {}
+                }
 
-                    // トラックパッドクリック判定
-                    try
-                    {
-                        var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
-                        if (teleportAction != null && teleportAction.activeBinding && teleportAction.GetStateDown(rightHand.handType))
-                        {
-                            if (trackpadPos.y > 0.2f) isUpPressed = true;
-                            else if (trackpadPos.y < -0.2f) isDownPressed = true;
-                        }
-                    }
-                    catch {}
+                // トラックパッドクリック (Teleport または UIClick)
+                var clickAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
+                if (clickAction == null || !clickAction.active) clickAction = Valve.VR.SteamVR_Input.GetBooleanAction("GrabGrip");
+                if (clickAction != null && clickAction.GetStateDown(rightHand.handType))
+                {
+                    if (trackpadPos.y > 0.15f) isUpPressed = true;
+                    else if (trackpadPos.y < -0.15f) isDownPressed = true;
                 }
             }
         }
+        catch {}
 
-        // トラックパッドのアナログタッチ/連続入力 (Y軸 > 0.35 で加算、Y軸 < -0.35 で減算)
-        if (Mathf.Abs(trackpadPos.y) > 0.35f && Time.frameCount % 4 == 0)
+        // トラックパッドのタッチ / 連続入力判定 (Y軸 > 0.25 で値上昇 +1、Y軸 < -0.25 で値減少 -1)
+        if (Mathf.Abs(trackpadPos.y) > 0.25f && Time.frameCount % 5 == 0)
         {
-            if (trackpadPos.y > 0.35f) isUpPressed = true;
-            else if (trackpadPos.y < -0.35f) isDownPressed = true;
+            if (trackpadPos.y > 0.25f) isUpPressed = true;
+            else if (trackpadPos.y < -0.25f) isDownPressed = true;
         }
 
         // トラックパッド上下（上：値上昇 +1 / 下：値減少 -1）
