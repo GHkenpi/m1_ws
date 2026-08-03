@@ -315,11 +315,11 @@ public class VRQuestionnaireUI : MonoBehaviour
             var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
             if (teleportAction != null && teleportAction.GetStateDown(inputSource))
             {
-                if (trackpadPos.y > 0.2f)
+                if (trackpadPos.y > 0.05f)
                 {
                     isUpPressed = true;
                 }
-                else if (trackpadPos.y < -0.2f)
+                else if (trackpadPos.y < -0.05f)
                 {
                     isDownPressed = true;
                 }
@@ -327,13 +327,13 @@ public class VRQuestionnaireUI : MonoBehaviour
         }
         catch {}
 
-        // トラックパッドの連続入力判定（Y軸 > 0.2f で上昇、Y軸 < -0.2f で減少）
-        if (!isUpPressed && !isDownPressed && Mathf.Abs(trackpadPos.y) > 0.2f)
+        // トラックパッドの入力判定（Y軸 > 0.1f で上昇、Y軸 < -0.1f で減少）
+        if (!isUpPressed && !isDownPressed && Mathf.Abs(trackpadPos.y) > 0.1f)
         {
-            if (Time.frameCount % 5 == 0)
+            if (Time.frameCount % 4 == 0)
             {
-                if (trackpadPos.y > 0.2f) isUpPressed = true;
-                else if (trackpadPos.y < -0.2f) isDownPressed = true;
+                if (trackpadPos.y > 0.1f) isUpPressed = true;
+                else if (trackpadPos.y < -0.1f) isDownPressed = true;
             }
         }
 
