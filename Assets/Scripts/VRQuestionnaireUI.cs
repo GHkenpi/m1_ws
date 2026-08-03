@@ -304,18 +304,12 @@ public class VRQuestionnaireUI : MonoBehaviour
             }
             catch {}
 
-            // トラックパッド座標 (Y軸: 上下)
+            // トラックパッド座標 (Y軸: 上下) - Handコンポーネントから直接取得
             try
             {
-                var actionSet = Valve.VR.SteamVR_Input.GetActionSet("default");
-                if (actionSet != null && actionSet.IsActive(rightHand.handType))
+                if (rightHand.trackpadAction != null && rightHand.trackpadAction.active)
                 {
-                    var touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadTouch");
-                    if (touchPosAction == null) touchPosAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
-                    if (touchPosAction != null && touchPosAction.GetActive(rightHand.handType))
-                    {
-                        trackpadPos = touchPosAction.GetAxis(rightHand.handType);
-                    }
+                    trackpadPos = rightHand.trackpadAction.axis;
                 }
             }
             catch {}
@@ -323,8 +317,7 @@ public class VRQuestionnaireUI : MonoBehaviour
             // トラックパッドクリック判定
             try
             {
-                var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
-                if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
+                if (rightHand.teleportAction != null && rightHand.teleportAction.GetStateDown(rightHand.handType))
                 {
                     if (trackpadPos.y > 0.2f) isUpPressed = true;
                     else if (trackpadPos.y < -0.2f) isDownPressed = true;
