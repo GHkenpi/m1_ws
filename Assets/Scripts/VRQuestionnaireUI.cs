@@ -308,48 +308,43 @@ public class VRQuestionnaireUI : MonoBehaviour
             if (touchAction == null) touchAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
             if (touchAction != null)
             {
-                Vector2 pos = touchAction.GetAxis(inputSource);
-                if (pos.sqrMagnitude > 0.001f)
-                {
-                    trackpadPos = pos;
-                }
+                trackpadPos = touchAction.GetAxis(inputSource);
             }
 
-            // 3. トラックパッド押し込み
+            // 3. トラックパッド押し込み判定 (Teleport アクション)
             var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
             if (teleportAction != null && teleportAction.GetStateDown(inputSource))
             {
-                // Y軸がマイナス（下側）、またはY < 0.1 であれば「下（減少）」とする
-                if (trackpadPos.y < 0.1f)
-                {
-                    isDownPressed = true;
-                }
-                else
+                if (trackpadPos.y > 0.2f)
                 {
                     isUpPressed = true;
+                }
+                else if (trackpadPos.y < -0.2f)
+                {
+                    isDownPressed = true;
                 }
             }
         }
         catch {}
 
-        // トラックパッドの連続タッチ・上下入力判定
-        if (!isUpPressed && !isDownPressed && Mathf.Abs(trackpadPos.y) > 0.15f)
+        // トラックパッドの連続入力判定（Y軸 > 0.2f で上昇、Y軸 < -0.2f で減少）
+        if (!isUpPressed && !isDownPressed && Mathf.Abs(trackpadPos.y) > 0.2f)
         {
             if (Time.frameCount % 5 == 0)
             {
-                if (trackpadPos.y < -0.1f) isDownPressed = true;
-                else if (trackpadPos.y > 0.1f) isUpPressed = true;
+                if (trackpadPos.y > 0.2f) isUpPressed = true;
+                else if (trackpadPos.y < -0.2f) isDownPressed = true;
             }
         }
 
-        // 実行（下：-1 / 上：+1）
-        if (isDownPressed)
-        {
-            ChangeCurrentValue(-1.0f);
-        }
-        else if (isUpPressed)
+        // 実行（上：+1 / 下：-1）
+        if (isUpPressed)
         {
             ChangeCurrentValue(1.0f);
+        }
+        else if (isDownPressed)
+        {
+            ChangeCurrentValue(-1.0f);
         }
 
         // キーボード左右ショートカット対応
