@@ -319,16 +319,22 @@ public class VRQuestionnaireUI : MonoBehaviour
             var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
             if (teleportAction != null && teleportAction.GetStateDown(inputSource))
             {
-                if (trackpadPos.y >= 0f) isUpPressed = true;
-                else isDownPressed = true;
+                if (trackpadPos.y < 0f)
+                {
+                    isDownPressed = true;
+                }
+                else
+                {
+                    isUpPressed = true;
+                }
             }
         }
         catch {}
 
-        // トラックパッドの連続タッチ・上下入力判定
-        if (Mathf.Abs(trackpadPos.y) > 0.2f)
+        // トラックパッドの連続タッチ・上下入力判定（タッチのみの場合）
+        if (!isUpPressed && !isDownPressed && Mathf.Abs(trackpadPos.y) > 0.2f)
         {
-            if (Time.frameCount % 4 == 0)
+            if (Time.frameCount % 5 == 0)
             {
                 if (trackpadPos.y > 0.2f) isUpPressed = true;
                 else if (trackpadPos.y < -0.2f) isDownPressed = true;
@@ -336,13 +342,13 @@ public class VRQuestionnaireUI : MonoBehaviour
         }
 
         // トラックパッド上下（上：値上昇 +1 / 下：値減少 -1）
-        if (isUpPressed)
-        {
-            ChangeCurrentValue(1.0f);
-        }
-        else if (isDownPressed)
+        if (isDownPressed)
         {
             ChangeCurrentValue(-1.0f);
+        }
+        else if (isUpPressed)
+        {
+            ChangeCurrentValue(1.0f);
         }
 
         // キーボード左右ショートカット対応
