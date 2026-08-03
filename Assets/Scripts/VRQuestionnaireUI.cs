@@ -282,77 +282,33 @@ public class VRQuestionnaireUI : MonoBehaviour
     {
         if (!gameObject.activeSelf) return;
 
-        // 右コントローラートラックパッド / 矢印キー入力の取得
-        Vector2 trackpadPos = Vector2.zero;
-        bool isUpPressed = Input.GetKeyDown(KeyCode.UpArrow);
-        bool isDownPressed = Input.GetKeyDown(KeyCode.DownArrow);
-        bool isLeftPressed = Input.GetKeyDown(KeyCode.LeftArrow);
-        bool isRightPressed = Input.GetKeyDown(KeyCode.RightArrow);
-        bool isTriggerPressed = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
+        // キーボード操作
+        bool isUpPressed = Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.PageUp);
+        bool isDownPressed = Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.PageDown);
+        bool isLeftPressed = Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A);
+        bool isRightPressed = Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D);
+        bool isNextItemPressed = Input.GetKeyDown(KeyCode.Tab);
+        bool isConfirmPressed = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space);
 
-        // SteamVR Input 経由のトラックパッド/トリガー入力判定
-        try
+        // 項目間切替 (Tabキー)
+        if (isNextItemPressed)
         {
-            var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
-            var inputSource = rightHand != null ? rightHand.handType : Valve.VR.SteamVR_Input_Sources.RightHand;
-
-            // 1. トリガー判定 (決定 / 次へ)
-            var triggerAction = Valve.VR.SteamVR_Input.GetBooleanAction("GrabPinch");
-            if (triggerAction != null && triggerAction.GetStateDown(inputSource))
-            {
-                isTriggerPressed = true;
-            }
-
-            // 2. トラックパッド座標 (Y軸: 上下)
-            var touchAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadTouch");
-            if (touchAction == null) touchAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
-            if (touchAction != null)
-            {
-                trackpadPos = touchAction.GetAxis(inputSource);
-            }
-
-            // 3. トラックパッド押し込み判定 (Teleport アクション)
-            var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
-            if (teleportAction != null && teleportAction.GetStateDown(inputSource))
-            {
-                if (trackpadPos.y > 0.05f)
-                {
-                    isUpPressed = true;
-                }
-                else if (trackpadPos.y < -0.05f)
-                {
-                    isDownPressed = true;
-                }
-            }
-        }
-        catch {}
-
-        // トラックパッドの入力判定（Y軸 > 0.1f で上昇、Y軸 < -0.1f で減少）
-        if (!isUpPressed && !isDownPressed && Mathf.Abs(trackpadPos.y) > 0.1f)
-        {
-            if (Time.frameCount % 4 == 0)
-            {
-                if (trackpadPos.y > 0.1f) isUpPressed = true;
-                else if (trackpadPos.y < -0.1f) isDownPressed = true;
-            }
+            _focusedItemIndex = (_focusedItemIndex + 1) % 4;
+            UpdateFocusHighlight();
         }
 
-        // 実行（上：+1 / 下：-1）
-        if (isUpPressed)
+        // 数値変更 (上下キー / W,S / 左右キー / A,D)
+        if (isUpPressed || isRightPressed)
         {
             ChangeCurrentValue(1.0f);
         }
-        else if (isDownPressed)
+        else if (isDownPressed || isLeftPressed)
         {
             ChangeCurrentValue(-1.0f);
         }
 
-        // キーボード左右ショートカット対応
-        if (isLeftPressed) ChangeCurrentValue(-1.0f);
-        if (isRightPressed) ChangeCurrentValue(1.0f);
-
-        // トリガーで決定・次項目へ移動・送信
-        if (isTriggerPressed)
+        // 決定・送信 (Enterキー / Spaceキー)
+        if (isConfirmPressed)
         {
             if (_focusedItemIndex == 3)
             {
