@@ -78,9 +78,32 @@ public class AutomatedExperimentManager : MonoBehaviour
 
     private void Update()
     {
-        if (isWaitingForSpaceKey && Input.GetKeyDown(KeyCode.Space))
+        // 試行開始待ち状態（Spaceキー または コントローラーのトリガー）
+        if (isWaitingForSpaceKey)
         {
-            StartNextTrial();
+            bool startTriggered = Input.GetKeyDown(KeyCode.Space);
+
+            try
+            {
+                if (Valve.VR.SteamVR.active)
+                {
+                    var player = Valve.VR.InteractionSystem.Player.instance;
+                    if (player != null && player.rightHand != null)
+                    {
+                        var trigger = player.rightHand.grabPinchAction;
+                        if (trigger != null && trigger.GetStateDown(player.rightHand.handType))
+                        {
+                            startTriggered = true;
+                        }
+                    }
+                }
+            }
+            catch {}
+
+            if (startTriggered)
+            {
+                StartNextTrial();
+            }
         }
 
         if (_inTrialCountdown)
