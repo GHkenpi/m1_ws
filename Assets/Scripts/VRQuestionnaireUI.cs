@@ -84,12 +84,6 @@ public class VRQuestionnaireUI : MonoBehaviour
         timeEstimateInput = q1InputObj.GetComponent<InputField>();
         q1ValueText = q1InputObj.GetComponentInChildren<UnityEngine.UI.Text>();
         if (q1ValueText != null) q1ValueText.text = "30 秒";
-        if (timeEstimateInput != null)
-        {
-            timeEstimateInput.onValueChanged.AddListener(val => {
-                if (float.TryParse(val, out float v)) _dv1Value = v;
-            });
-        }
 
         // Q2: Passage of Time Slider
         CreateQuestionLabel("Q2: 時間の経過速度はどれくらい速く感じましたか？ (0:非常に遅い 〜 100:非常に速い)", new Vector2(0, 30), font);
@@ -314,30 +308,34 @@ public class VRQuestionnaireUI : MonoBehaviour
             if (touchAction == null) touchAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
             if (touchAction != null)
             {
-                trackpadPos = touchAction.GetAxis(inputSource);
+                Vector2 pos = touchAction.GetAxis(inputSource);
+                if (pos.sqrMagnitude > 0.001f)
+                {
+                    trackpadPos = pos;
+                }
             }
 
-            // 3. トラックパッド押し込み判定 (Teleport アクション)
-            var pressAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
-            if (pressAction != null && pressAction.GetStateDown(inputSource))
+            // 3. トラックパッド押し込み (Teleport / TrackpadPress)
+            var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
+            if (teleportAction != null && teleportAction.GetStateDown(inputSource))
             {
-                if (trackpadPos.y > 0.05f) isUpPressed = true;
-                else if (trackpadPos.y < -0.05f) isDownPressed = true;
+                if (trackpadPos.y >= 0f) isUpPressed = true;
+                else isDownPressed = true;
             }
         }
         catch {}
 
-        // トラックパッドタッチ / 上下判定 (トラックパッドをタッチまたは押し込み時)
-        if (Mathf.Abs(trackpadPos.y) > 0.15f)
+        // トラックパッドの連続タッチ・上下入力判定
+        if (Mathf.Abs(trackpadPos.y) > 0.2f)
         {
-            if (Time.frameCount % 6 == 0) // 連続入力間隔
+            if (Time.frameCount % 4 == 0)
             {
-                if (trackpadPos.y > 0.15f) isUpPressed = true;
-                else if (trackpadPos.y < -0.15f) isDownPressed = true;
+                if (trackpadPos.y > 0.2f) isUpPressed = true;
+                else if (trackpadPos.y < -0.2f) isDownPressed = true;
             }
         }
 
-        // トラックパッド上下処理（上：+1 / 下：-1）
+        // トラックパッド上下（上：値上昇 +1 / 下：値減少 -1）
         if (isUpPressed)
         {
             ChangeCurrentValue(1.0f);
