@@ -294,45 +294,45 @@ public class VRQuestionnaireUI : MonoBehaviour
         try
         {
             var rightHand = Valve.VR.InteractionSystem.Player.instance != null ? Valve.VR.InteractionSystem.Player.instance.rightHand : null;
-            if (rightHand != null)
+            var inputSource = rightHand != null ? rightHand.handType : Valve.VR.SteamVR_Input_Sources.RightHand;
+
+            // 1. トリガー判定 (決定 / 次へ)
+            var triggerAction = Valve.VR.SteamVR_Input.GetBooleanAction("GrabPinch");
+            if (triggerAction != null && triggerAction.GetStateDown(inputSource))
             {
-                // トリガー判定 (決定 / 次へ)
-                var triggerAction = rightHand.grabPinchAction;
-                if (triggerAction != null && triggerAction.GetStateDown(rightHand.handType))
-                {
-                    isTriggerPressed = true;
-                }
+                isTriggerPressed = true;
+            }
 
-                // トラックパッド座標 (Y軸: 上下)
-                var touchAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadTouch");
-                if (touchAction == null || !touchAction.active) touchAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
-                
-                if (touchAction != null)
+            // 2. トラックパッド座標 (Y軸: 上下)
+            var touchAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadTouch");
+            if (touchAction == null) touchAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
+            if (touchAction != null)
+            {
+                Vector2 pos = touchAction.GetAxis(inputSource);
+                if (pos.sqrMagnitude > 0.001f)
                 {
-                    Vector2 pos = touchAction.GetAxis(rightHand.handType);
-                    if (pos.sqrMagnitude > 0.01f)
-                    {
-                        trackpadPos = pos;
-                    }
+                    trackpadPos = pos;
                 }
+            }
 
-                // トラックパッドクリック (Teleport または UIClick)
-                var clickAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
-                if (clickAction == null || !clickAction.active) clickAction = Valve.VR.SteamVR_Input.GetBooleanAction("GrabGrip");
-                if (clickAction != null && clickAction.GetStateDown(rightHand.handType))
-                {
-                    if (trackpadPos.y > 0.15f) isUpPressed = true;
-                    else if (trackpadPos.y < -0.15f) isDownPressed = true;
-                }
+            // 3. トラックパッド押し込み (Teleport / TrackpadPress)
+            var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
+            if (teleportAction != null && teleportAction.GetStateDown(inputSource))
+            {
+                if (trackpadPos.y >= 0f) isUpPressed = true;
+                else isDownPressed = true;
             }
         }
         catch {}
 
-        // トラックパッドのタッチ / 連続入力判定 (Y軸 > 0.25 で値上昇 +1、Y軸 < -0.25 で値減少 -1)
-        if (Mathf.Abs(trackpadPos.y) > 0.25f && Time.frameCount % 5 == 0)
+        // トラックパッドの連続タッチ・上下入力判定
+        if (Mathf.Abs(trackpadPos.y) > 0.2f)
         {
-            if (trackpadPos.y > 0.25f) isUpPressed = true;
-            else if (trackpadPos.y < -0.25f) isDownPressed = true;
+            if (Time.frameCount % 4 == 0)
+            {
+                if (trackpadPos.y > 0.2f) isUpPressed = true;
+                else if (trackpadPos.y < -0.2f) isDownPressed = true;
+            }
         }
 
         // トラックパッド上下（上：値上昇 +1 / 下：値減少 -1）
