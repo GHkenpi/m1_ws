@@ -315,11 +315,12 @@ public class VRQuestionnaireUI : MonoBehaviour
                 }
             }
 
-            // 3. トラックパッド押し込み (Teleport / TrackpadPress)
+            // 3. トラックパッド押し込み
             var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
             if (teleportAction != null && teleportAction.GetStateDown(inputSource))
             {
-                if (trackpadPos.y < 0f)
+                // Y軸がマイナス（下側）、またはY < 0.1 であれば「下（減少）」とする
+                if (trackpadPos.y < 0.1f)
                 {
                     isDownPressed = true;
                 }
@@ -331,17 +332,17 @@ public class VRQuestionnaireUI : MonoBehaviour
         }
         catch {}
 
-        // トラックパッドの連続タッチ・上下入力判定（タッチのみの場合）
-        if (!isUpPressed && !isDownPressed && Mathf.Abs(trackpadPos.y) > 0.2f)
+        // トラックパッドの連続タッチ・上下入力判定
+        if (!isUpPressed && !isDownPressed && Mathf.Abs(trackpadPos.y) > 0.15f)
         {
             if (Time.frameCount % 5 == 0)
             {
-                if (trackpadPos.y > 0.2f) isUpPressed = true;
-                else if (trackpadPos.y < -0.2f) isDownPressed = true;
+                if (trackpadPos.y < -0.1f) isDownPressed = true;
+                else if (trackpadPos.y > 0.1f) isUpPressed = true;
             }
         }
 
-        // トラックパッド上下（上：値上昇 +1 / 下：値減少 -1）
+        // 実行（下：-1 / 上：+1）
         if (isDownPressed)
         {
             ChangeCurrentValue(-1.0f);
