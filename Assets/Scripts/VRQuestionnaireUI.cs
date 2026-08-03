@@ -314,29 +314,26 @@ public class VRQuestionnaireUI : MonoBehaviour
             if (touchAction == null) touchAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
             if (touchAction != null)
             {
-                Vector2 pos = touchAction.GetAxis(inputSource);
-                if (pos.sqrMagnitude > 0.001f)
-                {
-                    trackpadPos = pos;
-                }
+                trackpadPos = touchAction.GetAxis(inputSource);
+            }
+
+            // 3. トラックパッド押し込み判定 (Teleport アクション)
+            var pressAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
+            if (pressAction != null && pressAction.GetStateDown(inputSource))
+            {
+                if (trackpadPos.y > 0.05f) isUpPressed = true;
+                else if (trackpadPos.y < -0.05f) isDownPressed = true;
             }
         }
         catch {}
 
-        // 3. トラックパッドのタッチ/押し込み上下判定
-        bool hasTouch = Mathf.Abs(trackpadPos.y) > 0.1f;
-        if (hasTouch)
+        // トラックパッドタッチ / 上下判定 (トラックパッドをタッチまたは押し込み時)
+        if (Mathf.Abs(trackpadPos.y) > 0.15f)
         {
-            if (Time.frameCount % 5 == 0)
+            if (Time.frameCount % 6 == 0) // 連続入力間隔
             {
-                if (trackpadPos.y > 0.15f)
-                {
-                    isUpPressed = true;
-                }
-                else if (trackpadPos.y < -0.15f)
-                {
-                    isDownPressed = true;
-                }
+                if (trackpadPos.y > 0.15f) isUpPressed = true;
+                else if (trackpadPos.y < -0.15f) isDownPressed = true;
             }
         }
 
