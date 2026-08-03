@@ -304,12 +304,14 @@ public class VRQuestionnaireUI : MonoBehaviour
             }
             catch {}
 
-            // トラックパッド座標 (Y軸: 上下) - Handコンポーネントから直接取得
+            // トラックパッド座標 (Y軸: 上下)
             try
             {
-                if (rightHand.trackpadAction != null && rightHand.trackpadAction.active)
+                var touchAction = Valve.VR.SteamVR_Input.GetVector2Action("TouchpadTouch");
+                if (touchAction == null) touchAction = Valve.VR.SteamVR_Input.GetVector2Action("Touchpad");
+                if (touchAction != null)
                 {
-                    trackpadPos = rightHand.trackpadAction.axis;
+                    trackpadPos = touchAction.GetAxis(rightHand.handType);
                 }
             }
             catch {}
