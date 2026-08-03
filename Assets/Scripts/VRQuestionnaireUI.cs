@@ -317,7 +317,8 @@ public class VRQuestionnaireUI : MonoBehaviour
             // トラックパッドクリック判定
             try
             {
-                if (rightHand.teleportAction != null && rightHand.teleportAction.GetStateDown(rightHand.handType))
+                var teleportAction = Valve.VR.SteamVR_Input.GetBooleanAction("Teleport");
+                if (teleportAction != null && teleportAction.GetStateDown(rightHand.handType))
                 {
                     if (trackpadPos.y > 0.2f) isUpPressed = true;
                     else if (trackpadPos.y < -0.2f) isDownPressed = true;
